@@ -1,65 +1,161 @@
-import Image from "next/image";
+import { fetchSiteContent } from "@/lib/content";
+import { Nav } from "@/components/site/Nav";
+import { Hero } from "@/components/site/Hero";
+import { Marquee } from "@/components/site/Marquee";
+import { Stats } from "@/components/site/Stats";
+import { Work } from "@/components/site/Work";
+import { Services } from "@/components/site/Services";
+import { Process } from "@/components/site/Process";
+import { Testimonials } from "@/components/site/Testimonials";
+import { About } from "@/components/site/About";
+import { Faq } from "@/components/site/Faq";
+import { Contact } from "@/components/site/Contact";
+import { Footer } from "@/components/site/Footer";
 
-export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  let data: Awaited<ReturnType<typeof fetchSiteContent>> | null = null;
+  try {
+    data = await fetchSiteContent();
+  } catch (err) {
+    return (
+      <main className="container-page" style={{ padding: "120px 32px" }}>
+        <h1 className="display" style={{ fontSize: 56, marginBottom: 24 }}>
+          Initialisation requise
+        </h1>
+        <p style={{ color: "var(--ink-dim)", maxWidth: 560 }}>
+          La connexion à Convex a échoué.
+          <br />
+          Lance <code>npx convex dev</code> dans le projet, puis fais un
+          POST sur <code>/api/seed</code> avec ton <code>ADMIN_PASSWORD</code>{" "}
+          pour insérer le contenu initial.
+        </p>
+        <pre
+          style={{
+            marginTop: 24,
+            color: "var(--ink-mute)",
+            fontSize: 12,
+            whiteSpace: "pre-wrap",
+          }}
+        >
+          {String(err instanceof Error ? err.message : err)}
+        </pre>
       </main>
-    </div>
+    );
+  }
+
+  const {
+    settings,
+    marquee,
+    stats,
+    services,
+    projects,
+    testimonials,
+    processSteps,
+    faq,
+  } = data;
+
+  if (!settings) {
+    return (
+      <main className="container-page" style={{ padding: "120px 32px" }}>
+        <h1 className="display" style={{ fontSize: 56, marginBottom: 24 }}>
+          Contenu non initialisé
+        </h1>
+        <p style={{ color: "var(--ink-dim)" }}>
+          Connecte-toi à <a href="/login" style={{ color: "var(--accent)" }}>/login</a>{" "}
+          puis lance le seed via{" "}
+          <code>POST /api/seed</code>.
+        </p>
+      </main>
+    );
+  }
+
+  const logo = {
+    main: settings.logoMain,
+    accent: settings.logoAccent,
+    suffix: settings.logoSuffix,
+  };
+
+  return (
+    <>
+      <Nav logo={logo} ctaLabel={settings.heroSecondaryCta} />
+      <Hero
+        eyebrow={settings.heroEyebrow}
+        bgWord={settings.heroBgWord}
+        titleLine1={settings.heroTitleLine1}
+        titleLine2={settings.heroTitleLine2}
+        titleEm={settings.heroTitleEm}
+        signatureName={settings.heroSignatureName}
+        description={settings.heroDescription}
+        primaryCta={settings.heroPrimaryCta}
+        secondaryCta={settings.heroSecondaryCta}
+      />
+      <Marquee items={(marquee as { text: string }[]).map((m) => m.text)} />
+      <Stats
+        items={(stats as { num: string; label: string }[]).map((s) => ({
+          num: s.num,
+          label: s.label,
+        }))}
+      />
+      <Work
+        projects={projects as Parameters<typeof Work>[0]["projects"]}
+        titleLine1={settings.workTitleLine1}
+        titleEm={settings.workTitleEm}
+        intro={settings.workIntro}
+        cta={settings.workCta}
+      />
+      <Services
+        services={services as Parameters<typeof Services>[0]["services"]}
+        titleLine1={settings.servicesTitleLine1}
+        titleLine2={settings.servicesTitleLine2}
+        titleEm={settings.servicesTitleEm}
+      />
+      <Process
+        steps={processSteps as Parameters<typeof Process>[0]["steps"]}
+        titleLine1={settings.processTitleLine1}
+        titleEm={settings.processTitleEm}
+      />
+      <Testimonials
+        items={testimonials as Parameters<typeof Testimonials>[0]["items"]}
+        titleLine1={settings.avisTitleLine1}
+        titleEm={settings.avisTitleEm}
+        rating={settings.avisRating}
+      />
+      <About
+        titleLine1={settings.aboutTitleLine1}
+        titleEm={settings.aboutTitleEm}
+        body1={settings.aboutBody1}
+        body2={settings.aboutBody2}
+        portraitLabel={settings.aboutPortraitLabel}
+        miniGrid={settings.aboutMiniGrid}
+      />
+      <Faq
+        items={faq as Parameters<typeof Faq>[0]["items"]}
+        titleLine1={settings.faqTitleLine1}
+        titleEm={settings.faqTitleEm}
+      />
+      <Contact
+        titleLine1={settings.contactTitleLine1}
+        titleEm={settings.contactTitleEm}
+        email={settings.contactEmail}
+        phone={settings.contactPhone}
+        socialHandle={settings.contactSocialHandle}
+        socialUrl={settings.contactSocialUrl}
+        replyNotice={settings.contactReplyNotice}
+        quoteTypes={settings.contactQuoteTypes}
+        budgets={settings.contactBudgets}
+      />
+      <Footer
+        logo={logo}
+        wordmark1={settings.footerWordmark1}
+        wordmark2={settings.footerWordmark2}
+        tagline={settings.footerTagline}
+        email={settings.contactEmail}
+        phone={settings.contactPhone}
+        copy={settings.footerCopy}
+        location={settings.footerLocation}
+      />
+    </>
   );
 }

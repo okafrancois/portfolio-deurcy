@@ -1,0 +1,132 @@
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
+
+export default defineSchema({
+  settings: defineTable({
+    key: v.string(),
+    accent: v.string(),
+    bgTone: v.union(
+      v.literal("warm-black"),
+      v.literal("pure-black"),
+      v.literal("deep-charcoal"),
+    ),
+    grain: v.boolean(),
+    logoMain: v.string(),
+    logoAccent: v.string(),
+    logoSuffix: v.string(),
+    siteTitle: v.string(),
+    metaDescription: v.string(),
+    heroEyebrow: v.string(),
+    heroBgWord: v.string(),
+    heroTitleLine1: v.string(),
+    heroTitleLine2: v.string(),
+    heroTitleEm: v.string(),
+    heroSignatureName: v.string(),
+    heroDescription: v.string(),
+    heroPrimaryCta: v.string(),
+    heroSecondaryCta: v.string(),
+    workTitleLine1: v.string(),
+    workTitleEm: v.string(),
+    workIntro: v.string(),
+    workCta: v.string(),
+    servicesTitleLine1: v.string(),
+    servicesTitleLine2: v.string(),
+    servicesTitleEm: v.string(),
+    processTitleLine1: v.string(),
+    processTitleEm: v.string(),
+    avisTitleLine1: v.string(),
+    avisTitleEm: v.string(),
+    avisRating: v.string(),
+    aboutTitleLine1: v.string(),
+    aboutTitleEm: v.string(),
+    aboutBody1: v.string(),
+    aboutBody2: v.string(),
+    aboutPortraitLabel: v.string(),
+    aboutMiniGrid: v.array(
+      v.object({ k: v.string(), v: v.string() }),
+    ),
+    faqTitleLine1: v.string(),
+    faqTitleEm: v.string(),
+    contactTitleLine1: v.string(),
+    contactTitleEm: v.string(),
+    contactEmail: v.string(),
+    contactPhone: v.string(),
+    contactSocialHandle: v.string(),
+    contactSocialUrl: v.string(),
+    contactReplyNotice: v.string(),
+    contactQuoteTypes: v.array(v.string()),
+    contactBudgets: v.array(v.string()),
+    footerWordmark1: v.string(),
+    footerWordmark2: v.string(),
+    footerTagline: v.string(),
+    footerCopy: v.string(),
+    footerLocation: v.string(),
+  }).index("by_key", ["key"]),
+
+  marquee: defineTable({
+    text: v.string(),
+    order: v.number(),
+  }).index("by_order", ["order"]),
+
+  stats: defineTable({
+    num: v.string(),
+    label: v.string(),
+    order: v.number(),
+  }).index("by_order", ["order"]),
+
+  services: defineTable({
+    num: v.string(),
+    title: v.string(),
+    sub: v.string(),
+    body: v.string(),
+    bullets: v.array(v.string()),
+    order: v.number(),
+  }).index("by_order", ["order"]),
+
+  projects: defineTable({
+    title: v.string(),
+    client: v.string(),
+    category: v.string(),
+    year: v.string(),
+    duration: v.string(),
+    blurb: v.string(),
+    tag: v.string(),
+    order: v.number(),
+  }).index("by_order", ["order"]),
+
+  testimonials: defineTable({
+    name: v.string(),
+    role: v.string(),
+    company: v.string(),
+    quote: v.string(),
+    initials: v.string(),
+    order: v.number(),
+  }).index("by_order", ["order"]),
+
+  processSteps: defineTable({
+    num: v.string(),
+    label: v.string(),
+    body: v.string(),
+    order: v.number(),
+  }).index("by_order", ["order"]),
+
+  faq: defineTable({
+    q: v.string(),
+    a: v.string(),
+    order: v.number(),
+  }).index("by_order", ["order"]),
+
+  quoteRequests: defineTable({
+    name: v.string(),
+    email: v.string(),
+    company: v.string(),
+    type: v.string(),
+    budget: v.string(),
+    message: v.string(),
+    status: v.union(
+      v.literal("new"),
+      v.literal("read"),
+      v.literal("done"),
+    ),
+  }).index("by_status", ["status"]),
+});
