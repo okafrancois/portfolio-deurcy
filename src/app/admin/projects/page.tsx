@@ -15,15 +15,27 @@ export default async function ProjectsPage() {
       fields={[
         { name: "title", label: "Titre", type: "text" },
         { name: "client", label: "Client", type: "text" },
-        {
-          name: "category",
-          label: "Catégorie",
-          type: "text",
-        },
+        { name: "category", label: "Catégorie", type: "text" },
         { name: "year", label: "Année", type: "text" },
         { name: "duration", label: "Durée", type: "text" },
         { name: "blurb", label: "Description", type: "textarea" },
         { name: "tag", label: "Tag", type: "text" },
+        {
+          name: "coverImage",
+          label: "Image / vignette du projet",
+          type: "image",
+          urlField: "coverImageUrl",
+        },
+        {
+          name: "videoUrl",
+          label: "Lien vidéo (Vimeo, YouTube, mp4…)",
+          type: "text",
+        },
+        {
+          name: "projectUrl",
+          label: "Lien du projet / case study",
+          type: "text",
+        },
         { name: "order", label: "Ordre", type: "number" },
       ]}
     />

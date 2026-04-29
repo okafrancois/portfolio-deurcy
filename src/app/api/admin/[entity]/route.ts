@@ -191,6 +191,25 @@ register("settings", {
   },
 });
 
+register("files", {
+  custom: async (body) => {
+    if (body.action === "create") {
+      // returns a short-lived upload URL
+      return await client().mutation(api.files.generateUploadUrl, {
+        token: token(),
+      });
+    }
+    if (body.action === "delete") {
+      if (!body.id) throw new Error("Missing storageId.");
+      return await client().mutation(api.files.deleteStorageFile, {
+        token: token(),
+        storageId: body.id as Id<"_storage">,
+      });
+    }
+    throw new Error("Unsupported file action.");
+  },
+});
+
 register("seed", {
   custom: async (body) => {
     return client().mutation(api.seed.seedAll, {

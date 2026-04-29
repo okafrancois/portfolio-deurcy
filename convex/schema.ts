@@ -92,6 +92,9 @@ export default defineSchema({
     blurb: v.string(),
     tag: v.string(),
     order: v.number(),
+    coverImage: v.optional(v.id("_storage")),
+    videoUrl: v.optional(v.string()),
+    projectUrl: v.optional(v.string()),
   }).index("by_order", ["order"]),
 
   testimonials: defineTable({

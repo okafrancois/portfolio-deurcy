@@ -10,6 +10,7 @@
 
 import type * as auth from "../auth.js";
 import type * as content from "../content.js";
+import type * as files from "../files.js";
 import type * as quotes from "../quotes.js";
 import type * as seed from "../seed.js";
 
@@ -22,6 +23,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   content: typeof content;
+  files: typeof files;
   quotes: typeof quotes;
   seed: typeof seed;
 }>;

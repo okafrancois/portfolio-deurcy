@@ -5,7 +5,8 @@ import { useState } from "react";
 
 export type FieldDef =
   | { name: string; label: string; type: "text" | "number" | "textarea" }
-  | { name: string; label: string; type: "stringArray"; helper?: string };
+  | { name: string; label: string; type: "stringArray"; helper?: string }
+  | { name: string; label: string; type: "image"; urlField: string };
 
 type Item = Record<string, unknown> & { _id: string };
 
@@ -25,7 +26,13 @@ export default function EntityCrud({ entity, title, fields, items }: Props) {
     const x: Record<string, unknown> = { _id: "" };
     for (const f of fields) {
       x[f.name] =
-        f.type === "number" ? 0 : f.type === "stringArray" ? [] : "";
+        f.type === "number"
+          ? 0
+          : f.type === "stringArray"
+            ? []
+            : f.type === "image"
+              ? null
+              : "";
     }
     return x as Item;
   };
@@ -34,7 +41,14 @@ export default function EntityCrud({ entity, title, fields, items }: Props) {
     const action = data._id ? "update" : "create";
     const id = data._id || undefined;
     const payload: Record<string, unknown> = {};
-    for (const f of fields) payload[f.name] = data[f.name];
+    for (const f of fields) {
+      const v = data[f.name];
+      if (f.type === "image" && (v === null || v === undefined || v === "")) {
+        // omit empty image fields so Convex validators accept the doc
+        continue;
+      }
+      payload[f.name] = v;
+    }
     const res = await fetch(`/api/admin/${entity}`, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -231,6 +245,15 @@ function ItemForm({
                 {f.helper ?? "Une entrée par ligne."}
               </small>
             </>
+          ) : f.type === "image" ? (
+            <ImageUploader
+              storageId={(data[f.name] as string | null | undefined) ?? null}
+              previewUrl={(data[f.urlField] as string | null | undefined) ?? null}
+              onChange={(storageId, url) => {
+                update(f.name, storageId);
+                update(f.urlField, url);
+              }}
+            />
           ) : (
             <input
               className="admin-input"
@@ -254,5 +277,125 @@ function ItemForm({
         </button>
       </div>
     </form>
+  );
+}
+
+function ImageUploader({
+  storageId,
+  previewUrl,
+  onChange,
+}: {
+  storageId: string | null;
+  previewUrl: string | null;
+  onChange: (storageId: string | null, url: string | null) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const onFile = async (file: File) => {
+    setBusy(true);
+    setError(null);
+    try {
+      const urlRes = await fetch("/api/admin/files", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "create" }),
+      });
+      if (!urlRes.ok) throw new Error("Impossible de créer l'URL d'upload.");
+      const { result: uploadUrl } = (await urlRes.json()) as { result: string };
+
+      const upload = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "content-type": file.type },
+        body: file,
+      });
+      if (!upload.ok) throw new Error("Échec de l'upload.");
+      const { storageId: newId } = (await upload.json()) as {
+        storageId: string;
+      };
+      const objectUrl = URL.createObjectURL(file);
+      onChange(newId, objectUrl);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur inconnue.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const remove = async () => {
+    if (storageId) {
+      await fetch("/api/admin/files", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "delete", id: storageId }),
+      }).catch(() => {});
+    }
+    onChange(null, null);
+  };
+
+  return (
+    <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+      {previewUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={previewUrl}
+          alt=""
+          style={{
+            width: 160,
+            height: 100,
+            objectFit: "cover",
+            border: "1px solid var(--line)",
+            borderRadius: 4,
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: 160,
+            height: 100,
+            border: "1px dashed var(--line)",
+            borderRadius: 4,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "var(--ink-mute)",
+            fontSize: 11,
+          }}
+        >
+          Aucune image
+        </div>
+      )}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <label
+          className="btn btn-ghost"
+          style={{ padding: "8px 14px", fontSize: 12, cursor: "pointer" }}
+        >
+          {busy ? "Upload…" : previewUrl ? "Remplacer" : "Choisir un fichier"}
+          <input
+            type="file"
+            accept="image/*"
+            disabled={busy}
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void onFile(f);
+              e.target.value = "";
+            }}
+          />
+        </label>
+        {previewUrl ? (
+          <button
+            type="button"
+            onClick={() => void remove()}
+            style={{ color: "var(--ink-mute)", fontSize: 12, textAlign: "left" }}
+          >
+            Retirer l&apos;image
+          </button>
+        ) : null}
+        {error ? (
+          <p style={{ color: "#ff8b6b", fontSize: 12 }}>{error}</p>
+        ) : null}
+      </div>
+    </div>
   );
 }

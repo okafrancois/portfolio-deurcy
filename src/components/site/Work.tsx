@@ -13,6 +13,9 @@ type Project = {
   duration: string;
   blurb: string;
   tag: string;
+  coverImageUrl?: string | null;
+  videoUrl?: string | null;
+  projectUrl?: string | null;
 };
 
 type Props = {
@@ -187,9 +190,13 @@ export function Work({ projects, titleLine1, titleEm, intro, cta }: Props) {
 
 function ProjectCard({ p, ar }: { p: Project; ar: string }) {
   const [hover, setHover] = useState(false);
+  const link = p.videoUrl || p.projectUrl || "#contact";
+  const external = link.startsWith("http");
   return (
     <a
-      href="#contact"
+      href={link}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       style={{ display: "block" }}
@@ -205,7 +212,24 @@ function ProjectCard({ p, ar }: { p: Project; ar: string }) {
           borderColor: hover ? "var(--accent)" : "var(--line)",
         }}
       >
-        <Placeholder label={p.title} />
+        {p.coverImageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={p.coverImageUrl}
+            alt={p.title}
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              transition: "transform 0.5s ease",
+              transform: hover ? "scale(1.04)" : "scale(1)",
+            }}
+          />
+        ) : (
+          <Placeholder label={p.title} />
+        )}
         <div
           style={{
             position: "absolute",

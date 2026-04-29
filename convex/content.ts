@@ -114,8 +114,17 @@ export const listServices = query({
 
 export const listProjects = query({
   args: {},
-  handler: async (ctx) =>
-    await ctx.db.query("projects").withIndex("by_order").collect(),
+  handler: async (ctx) => {
+    const docs = await ctx.db.query("projects").withIndex("by_order").collect();
+    return await Promise.all(
+      docs.map(async (d) => ({
+        ...d,
+        coverImageUrl: d.coverImage
+          ? await ctx.storage.getUrl(d.coverImage)
+          : null,
+      })),
+    );
+  },
 });
 
 export const listTestimonials = query({
@@ -157,6 +166,9 @@ const projectsFields = {
   blurb: v.string(),
   tag: v.string(),
   order: v.number(),
+  coverImage: v.optional(v.id("_storage")),
+  videoUrl: v.optional(v.string()),
+  projectUrl: v.optional(v.string()),
 };
 const testimonialsFields = {
   name: v.string(),
