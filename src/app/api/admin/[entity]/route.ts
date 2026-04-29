@@ -77,9 +77,8 @@ register("services", {
   create: (data) =>
     client().mutation(api.content.createService, {
       token: token(),
-      data: data as Parameters<
-        typeof api.content.createService
-      >[0] extends infer _ ? never : never,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      data: data as any,
     }),
   update: (id, data) =>
     client().mutation(api.content.updateService, {
